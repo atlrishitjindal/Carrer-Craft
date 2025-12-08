@@ -36,10 +36,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger("careercraft")
 
-# MongoDB connection
-mongo_url = os.environ["MONGO_URL"]
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ["DB_NAME"]]
+# MongoDB connection (optional - server can run without it)
+mongo_url = os.environ.get("MONGO_URL", "")
+db = None
+if mongo_url:
+    try:
+        client = AsyncIOMotorClient(mongo_url)
+        db = client[os.environ.get("DB_NAME", "careercraft")]
+        logger.info("MongoDB connected")
+    except Exception as e:
+        logger.warning(f"MongoDB connection failed: {e} - running without database")
+else:
+    logger.warning("No MONGO_URL set - running without database")
 
 # JWT / Auth
 JWT_SECRET = os.environ.get("JWT_SECRET", "dev-secret-change-me")
